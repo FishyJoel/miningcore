@@ -61,7 +61,10 @@
                 }
             ],
             "ipWhitelist": []
-        }
+        },
+        "oidcValidAudience": "",
+        "oidcValidIssuer": "https://login-int.norton.com/sso/oidc1/token",
+        "oidcMetadataAddress": "https://login-int.norton.com/sso/oidc1/token/.well-known/openid-configuration"
     },
     "pools": [
         {
@@ -137,7 +140,7 @@
                 "gas": 21000,
                 "enableGasLimit": true,
                 "gasLimit": 50000000000,
-                "gasLimitToleranceHrs": 48,
+                "gasLimitToleranceHrs": 168,
                 "maxGasLimit": 100000000000
             }
         }

@@ -669,6 +669,10 @@ namespace Miningcore.Configuration
         /// If this list null or empty, the default is 127.0.0.1
         /// </summary>
         public string[] MetricsIpWhitelist { get; set; }
+
+        public string OidcValidAudience { get; set; }
+        public string OidcValidIssuer { get; set; }
+        public string OidcMetadataAddress { get; set; }
     }
 
     public partial class Statistics

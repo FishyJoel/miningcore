@@ -17,6 +17,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Features.Metadata;
@@ -59,7 +60,8 @@ using Miningcore.Api.Middlewares;
 using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Http;
 using AspNetCoreRateLimit;
-
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Miningcore.Api
 {
@@ -171,6 +173,33 @@ namespace Miningcore.Api
 					
                     // WebSockets
                     services.AddWebSocketManager();
+
+                    services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                            .AddCookie(options =>
+                            {
+                                options.ForwardDefaultSelector = ctx => ctx.Request.Path.StartsWithSegments("/api/admin") ? "adminAuth" : null;
+                            })
+                            .AddJwtBearer("adminAuth", options =>
+                            {
+                                options.MetadataAddress = clusterConfig.Api?.OidcMetadataAddress;
+                                options.TokenValidationParameters = new TokenValidationParameters
+                                {
+                                    //IssuerSigningKeyResolver = (s, securityToken, identifier, parameters) =>
+                                    //{
+                                    //    var json = new WebClient().DownloadString(clusterConfig.Api?.OidcJwksUri);
+                                    //    var jwkset = new JsonWebKeySet(json);
+                                    //    return jwkset.GetSigningKeys();
+                                    //},
+
+                                    ValidIssuer = clusterConfig.Api?.OidcValidIssuer,
+                                    ValidateIssuerSigningKey = true,
+                                    ValidateIssuer = true,
+                                    ValidateLifetime = true,
+                                    ValidAudience = clusterConfig.Api?.OidcValidIssuer,
+                                    ValidateAudience = false
+                                };
+                            });
+
                 })
                 .Configure(app =>
                 {
@@ -179,7 +208,6 @@ namespace Miningcore.Api
 
                     app.UseMiddleware<ApiExceptionHandlingMiddleware>();
 
-                    UseIpWhiteList(app, true, new[] { "/api/admin" }, clusterConfig.Api?.AdminIpWhitelist);
                     UseIpWhiteList(app, true, new[] { "/metrics" }, clusterConfig.Api?.MetricsIpWhitelist);
 
                     app.UseResponseCompression();
