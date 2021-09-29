@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.Extensions.Caching.Memory;
@@ -91,6 +92,14 @@ namespace Miningcore.Payments.PaymentSchemes
             var rewards = new Dictionary<string, decimal>();
             var paidUntil = DateTime.UtcNow.AddSeconds(-5);
             var shareCutOffDate = CalculateRewards(poolConfig, shares, rewards, blockData, paidUntil);
+
+            int worker, io;
+            ThreadPool.GetAvailableThreads(out worker, out io);
+            int maxWorker, maxIo;
+            ThreadPool.GetMaxThreads(out maxWorker, out maxIo);
+            int minWorker, minIO;
+            ThreadPool.GetMinThreads(out minWorker, out minIO);
+            logger.Info(() => $"GetAvailableThreads - workers {worker}, io {io} | GetMaxThreads - workers {maxWorker}, io {maxIo}  | GetMinThreads - workers {minWorker}, io {minIO}");
 
             // update balances
             foreach(var address in rewards.Keys)
