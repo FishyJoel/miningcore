@@ -109,12 +109,11 @@ namespace Miningcore.Payments.PaymentSchemes
                     await TelemetryUtil.TrackDependency(
                             () => balanceRepo.AddAmountAsync(con, tx, poolConfig.Id, address, amount, $"Reward for {FormatUtil.FormatQuantity(shares[address])} shares for block {block?.BlockHeight}"),
                             DependencyType.Sql, "AddBalanceAmount",  $"miner:{address}, amount:{payoutHandler.FormatAmount(amount)}, txDeduction:{payoutHandler.FormatAmount(txDeduction)}");
-
-                    // delete discarded shares
-                    await TelemetryUtil.TrackDependency(() => shareRepo.ProcessSharesForUserBeforeAcceptedAsync(con, tx, poolConfig.Id, address, shareCutOffDate.Value),
-                    DependencyType.Sql, "ProcessMinerShares", $"miner:{address}, cutoffDate:{shareCutOffDate.Value}");
                 }
             }
+            // delete discarded shares
+            await TelemetryUtil.TrackDependency(() => shareRepo.DeleteSharesBeforeAcceptedAsync(con, tx, poolConfig.Id, shareCutOffDate.Value),
+            DependencyType.Sql, "DeleteOldShares", "cutoffDate:{shareCutOffDate.Value}");
 
             // diagnostics
             ThreadPool.GetMaxThreads(out int maxWorker, out int maxIo);
